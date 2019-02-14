@@ -21,3 +21,23 @@ docker run -it --rm                                                  \
     --net=container:wireguard                                        \
     appropriate/curl http://httpbin.org/ip
 ```
+
+## Troubleshooting
+
+### Asymmetric Routing
+
+If you see any errors similar to:
+
+```bash
+sysctl: setting key "net.ipv4.conf.all.rp_filter": Read-only file system
+sysctl: setting key "net.ipv4.conf.default.rp_filter": Read-only file system
+```
+
+Then your host is set to discard packets when the route for outbound traffic differs from the route for incoming traffic. To correct this, you'll want to set these values in `/etc/sysctl.conf`:
+
+```bash
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
+```
+
+Afterwards, reboot.
