@@ -1,7 +1,6 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install -y software-properties-common openresolv iptables iproute2
-RUN add-apt-repository ppa:wireguard/wireguard && apt-get update && apt-get install -y wireguard-tools
+RUN apt-get update && apt-get install -y openresolv iptables iproute2 wireguard
 
 COPY entrypoint.sh /entrypoint.sh
 
