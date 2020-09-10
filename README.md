@@ -5,12 +5,12 @@ Wireguard is implemented as a kernel module, which is key to its performance and
 
 You will need a configuration file for your Wireguard interface. Many VPN providers will create this configuration file for you. For example, [here](http://mullvad.net/en/download/wireguard-config) is the configuration generator for Mullvad. Be sure to NOT include a killswitch in the configuration file, since the docker image already has one.
 
-Now simply mount the configuration file and run! For example, if your configuration file is located at `/path/to/conf/mullvadus2.conf`:
+Now simply mount the configuration file and run! For example, if your configuration file is located at `/path/to/conf/mullvad.conf`:
 
 ```bash
 docker run --name wireguard                                          \
     --privileged                                                     \
-    -v /path/to/conf/mullvadus2.conf:/etc/wireguard/mullvadus2.conf  \
+    -v /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf        \
     jordanpotter/wireguard
 ```
 
