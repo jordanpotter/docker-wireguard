@@ -11,6 +11,12 @@ fi
 config=`echo $configs | head -n 1`
 interface="${config%.*}"
 
+if [[ "$(cat /proc/sys/net/ipv4/conf/all/src_valid_mark)" != "1" ]]; then
+    echo "sysctl net.ipv4.conf.all.src_valid_mark=1 is not set" >&2
+    exit 1
+fi
+
+sed -i "s:sysctl -q net.ipv4.conf.all.src_valid_mark=1:echo skipping setting net.ipv4.conf.all.src_valid_mark:" /usr/bin/wg-quick
 wg-quick up $interface
 
 docker_network="$(ip -o addr show dev eth0 | awk '$3 == "inet" {print $4}')"

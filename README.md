@@ -9,7 +9,9 @@ Now simply mount the configuration file and run! For example, if your configurat
 
 ```bash
 docker run --name wireguard                                          \
-    --privileged                                                     \
+    --cap-add NET_ADMIN                                              \
+    --cap-add SYS_MODULE                                             \
+    --sysctl net.ipv4.conf.all.src_valid_mark=1                      \
     -v /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf        \
     jordanpotter/wireguard
 ```
