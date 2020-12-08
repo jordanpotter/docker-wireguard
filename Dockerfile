@@ -1,6 +1,8 @@
-FROM ubuntu:20.04
+FROM alpine:3.12.1
 
-RUN apt-get update && apt-get install -y openresolv iptables iproute2 wireguard
+RUN apk add --no-cache \
+      openresolv iptables iproute2 wireguard-tools \
+      findutils # Needed for find's -printf flag.
 
 COPY entrypoint.sh /entrypoint.sh
 
