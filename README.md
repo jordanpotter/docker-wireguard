@@ -1,4 +1,5 @@
 # Wireguard
+
 This is a simple docker image to run a Wireguard client. It includes a kill switch to ensure that any traffic not encrypted via Wireguard is dropped.
 
 Wireguard is implemented as a kernel module, which is key to its performance and simplicity. However, this means that Wireguard _must_ be installed on the host operating system for this container to work properly. Instructions for installing Wireguard can be found [here](http://wireguard.com/install).
@@ -24,4 +25,4 @@ docker run -it --rm                                                  \
     appropriate/curl http://httpbin.org/ip
 ```
 
-Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:1.0.0`. The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
+Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.0.0`. The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
