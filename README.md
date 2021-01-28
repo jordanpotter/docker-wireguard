@@ -25,4 +25,4 @@ docker run -it --rm                                                  \
     appropriate/curl http://httpbin.org/ip
 ```
 
-Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.0.0`. The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
+Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.0.1`. The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
