@@ -2,6 +2,12 @@
 
 set -e
 
+default_route_ip=$(ip route | grep default | awk '{print $3}')
+if [[ -z "$default_route_ip" ]]; then
+    echo "No default route configured" >&2
+    exit 1
+fi
+
 configs=`find /etc/wireguard -type f -printf "%f\n"`
 if [[ -z "$configs" ]]; then
     echo "No configuration files found in /etc/wireguard" >&2
@@ -29,6 +35,11 @@ if [[ -z "$docker6_network" ]]; then
 else
     docker6_network_rule=$([ ! -z "$docker6_network" ] && echo "! -d $docker6_network" || echo "")
     ip6tables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $docker6_network_rule -j REJECT
+fi
+
+if [[ "$LOCAL_NETWORK" ]]; then
+    ip route add $LOCAL_NETWORK via $default_route_ip
+    iptables -I OUTPUT -d $LOCAL_NETWORK -j ACCEPT
 fi
 
 shutdown () {
