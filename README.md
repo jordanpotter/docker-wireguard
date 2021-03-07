@@ -27,7 +27,7 @@ docker run -it --rm                                                  \
 
 ## Local Network
 
-If you wish to allow traffic to your local network, specify the `LOCAL_NETWORK` environment variable:
+If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_NETWORK` environment variable:
 
 ```bash
 docker run --name wireguard                                          \
@@ -52,7 +52,7 @@ docker run --name wireguard                                          \
 ```
 
 ```bash
-docker run --name nginx                                              \
+docker run -it --rm                                                  \
     --net=container:wireguard                                        \
     nginx
 ```
