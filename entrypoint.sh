@@ -37,10 +37,15 @@ else
     ip6tables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $docker6_network_rule -j REJECT
 fi
 
-if [[ "$LOCAL_NETWORK" ]]; then
-    echo "Allowing traffic to local network ${LOCAL_NETWORK}" >&2
-    ip route add $LOCAL_NETWORK via $default_route_ip
-    iptables -I OUTPUT -d $LOCAL_NETWORK -j ACCEPT
+# Support LOCAL_NETWORK environment variable, which was replaced by LOCAL_SUBNET
+if [[ -z "$LOCAL_SUBNET" && "$LOCAL_NETWORK" ]]; then
+    LOCAL_SUBNET=$LOCAL_NETWORK
+fi
+
+if [[ "$LOCAL_SUBNET" ]]; then
+    echo "Allowing traffic to local subnet ${LOCAL_SUBNET}" >&2
+    ip route add $LOCAL_SUBNET via $default_route_ip
+    iptables -I OUTPUT -d $LOCAL_SUBNET -j ACCEPT
 fi
 
 shutdown () {

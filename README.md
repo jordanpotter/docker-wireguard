@@ -27,7 +27,7 @@ docker run -it --rm                                                  \
 
 ## Local Network
 
-If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_NETWORK` environment variable:
+If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_SUBNET` environment variable:
 
 ```bash
 docker run --name wireguard                                          \
@@ -35,7 +35,7 @@ docker run --name wireguard                                          \
     --cap-add SYS_MODULE                                             \
     --sysctl net.ipv4.conf.all.src_valid_mark=1                      \
     -v /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf        \
-    -e LOCAL_NETWORK=10.0.0.0/8                                      \
+    -e LOCAL_SUBNET=10.0.0.0/8                                       \
     jordanpotter/wireguard
 ```
 
@@ -59,6 +59,6 @@ docker run -it --rm                                                  \
 
 ## Versioning
 
-Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.1.0`.
+Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.1.1`.
 
 The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
