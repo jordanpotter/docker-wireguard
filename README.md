@@ -25,6 +25,27 @@ docker run -it --rm                                                  \
     appropriate/curl http://httpbin.org/ip
 ```
 
+### Docker compose
+
+Alternatively, if you prefer docker-compose you can use following configuration:
+```
+version: '3.6'
+services:
+  docker_wireguard:
+    container_name: docker_wireguard
+    hostname: docker_wireguard
+    image: jordanpotter/wireguard:latest
+    restart: unless-stopped
+    volumes:
+       - '/foo/bar/wg0.conf:/etc/wireguard/wg0.conf:ro'
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+#      - net.ipv6.conf.all.disable_ipv6=1 # optional
+```
+
 ## Local Network
 
 If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_SUBNET` environment variable:
