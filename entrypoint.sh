@@ -25,16 +25,18 @@ fi
 sed -i "s:sysctl -q net.ipv4.conf.all.src_valid_mark=1:echo skipping setting net.ipv4.conf.all.src_valid_mark:" /usr/bin/wg-quick
 wg-quick up $interface
 
+# IPv4 kill switch: traffic must be either (1) to the WireGuard interface, (2) marked as a WireGuard packet, (3) to a local address, or (4) to the Docker network
 docker_network="$(ip -o addr show dev eth0 | awk '$3 == "inet" {print $4}')"
 docker_network_rule=$([ ! -z "$docker_network" ] && echo "! -d $docker_network" || echo "")
 iptables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $docker_network_rule -j REJECT
 
+# IPv6 kill switch: traffic must be either (1) to the WireGuard interface, (2) marked as a WireGuard packet, (3) to a local address, or (4) to the Docker network
 docker6_network="$(ip -o addr show dev eth0 | awk '$3 == "inet6" {print $4}')"
-if [[ -z "$docker6_network" ]]; then
-    echo "Skipping ipv6 kill switch setup since ipv6 interface was not found" >&2
-else
+if [[ "$docker6_network" ]]; then
     docker6_network_rule=$([ ! -z "$docker6_network" ] && echo "! -d $docker6_network" || echo "")
     ip6tables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $docker6_network_rule -j REJECT
+else
+    echo "Skipping IPv6 kill switch setup since IPv6 interface was not found" >&2
 fi
 
 # Support LOCAL_NETWORK environment variable, which was replaced by LOCAL_SUBNET
