@@ -25,6 +25,32 @@ docker run -it --rm                                                  \
     appropriate/curl http://httpbin.org/ip
 ```
 
+## Docker Compose
+
+Here is the same example as above, but using Docker Compose:
+
+```yml
+services:
+  wireguard:
+    container_name: wireguard
+    image: jordanpotter/wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+    volumes:
+      - /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf
+    restart: unless-stopped
+
+  curl:
+    image: appropriate/curl
+    command: http://httpbin.org/ip
+    network_mode: container:wireguard
+    depends_on:
+      - wireguard
+```
+
 ## Local Network
 
 If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_SUBNET` environment variable:
