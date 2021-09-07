@@ -46,7 +46,7 @@ services:
   curl:
     image: appropriate/curl
     command: http://httpbin.org/ip
-    network_mode: container:wireguard
+    network_mode: service:wireguard
     depends_on:
       - wireguard
 ```
