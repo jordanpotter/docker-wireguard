@@ -85,6 +85,6 @@ docker run -it --rm                                                  \
 
 ## Versioning
 
-Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.1.2`.
+Wireguard is new technology and its behavior may change in the future. For this reason, it's recommended to specify an image tag when running this container, such as `jordanpotter/wireguard:2.1.3`.
 
 The available tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
