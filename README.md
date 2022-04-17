@@ -53,7 +53,7 @@ services:
 
 ## Local Network
 
-If you wish to allow traffic to your local network, specify the subnet using the `LOCAL_SUBNET` environment variable:
+If you wish to allow traffic to your local network, specify the subnet(s) using the `LOCAL_SUBNETS` environment variable:
 
 ```bash
 docker run --name wireguard                                          \
@@ -61,7 +61,7 @@ docker run --name wireguard                                          \
     --cap-add SYS_MODULE                                             \
     --sysctl net.ipv4.conf.all.src_valid_mark=1                      \
     -v /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf        \
-    -e LOCAL_SUBNET=10.0.0.0/8                                       \
+    -e LOCAL_SUBNETS=10.1.0.0/16,10.2.0.0/16,10.3.0.0/16             \
     jordanpotter/wireguard
 ```
 

@@ -40,16 +40,22 @@ else
     echo "Skipping IPv6 kill switch setup since IPv6 interface was not found" >&2
 fi
 
-# Support LOCAL_NETWORK environment variable, which was replaced by LOCAL_SUBNET
-if [[ -z "$LOCAL_SUBNET" && "$LOCAL_NETWORK" ]]; then
-    LOCAL_SUBNET=$LOCAL_NETWORK
+# Support LOCAL_NETWORK environment variable, which was replaced by LOCAL_SUBNETS
+if [[ -z "$LOCAL_SUBNETS" && "$LOCAL_NETWORK" ]]; then
+    LOCAL_SUBNETS=$LOCAL_NETWORK
 fi
 
-if [[ "$LOCAL_SUBNET" ]]; then
-    echo "Allowing traffic to local subnet ${LOCAL_SUBNET}" >&2
-    ip route add $LOCAL_SUBNET via $default_route_ip
-    iptables -I OUTPUT -d $LOCAL_SUBNET -j ACCEPT
+# Support LOCAL_SUBNET environment variable, which was replaced by LOCAL_SUBNETS (plural)
+if [[ -z "$LOCAL_SUBNETS" && "$LOCAL_SUBNET" ]]; then
+    LOCAL_SUBNETS=$LOCAL_SUBNET
 fi
+
+for local_subnet in ${LOCAL_SUBNETS//,/$IFS}
+do
+    echo "Allowing traffic to local subnet ${local_subnet}" >&2
+    ip route add $local_subnet via $default_route_ip
+    iptables -I OUTPUT -d $local_subnet -j ACCEPT
+done
 
 shutdown () {
     wg-quick down $interface
