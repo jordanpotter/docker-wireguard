@@ -1,4 +1,4 @@
-FROM alpine:3.13.6
+FROM alpine:3.15.4
 
 RUN apk add --no-cache \
       openresolv iptables ip6tables iproute2 wireguard-tools \
