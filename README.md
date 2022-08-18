@@ -37,6 +37,9 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
+    environment:
+    - PORT_FORWARD_DEST=23423
+    - PORT_FORWARD_TO=23421
     sysctls:
       net.ipv4.conf.all.src_valid_mark: 1
     volumes:
@@ -61,7 +64,9 @@ docker run --name wireguard                                          \
     --cap-add SYS_MODULE                                             \
     --sysctl net.ipv4.conf.all.src_valid_mark=1                      \
     -v /path/to/conf/mullvad.conf:/etc/wireguard/mullvad.conf        \
-    -e LOCAL_SUBNETS=10.1.0.0/16,10.2.0.0/16,10.3.0.0/16             \
+    -e LOCAL_SUBNETS=10.1.0.0/16,10.2.0.0/16,10.3.0.0/16 \
+    -e PORT_FORWARD_TO=12132 \
+    -e PORT_FORWARD_DEST=12131 \
     jordanpotter/wireguard
 ```
 
