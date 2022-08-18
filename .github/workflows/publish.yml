@@ -23,7 +23,7 @@ jobs:
       id: docker-metadata
       uses: docker/metadata-action@v3
       with:
-        images: dikshantad/wireguard
+        images: dikshant/wireguard
         tags: |
           type=semver,pattern={{version}}
 
