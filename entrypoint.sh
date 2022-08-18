@@ -52,6 +52,7 @@ fi
 
 # Hack to allow upstream port forwarding through a VPN provider
 if [[ -z "$PORT_FORWARD_DEST" && "$PORT_FORWARD_TO" ]]; then
+    echo "Doing port forward from port ${PORT_FORWARD_TO} to destination port ${PORT_FORWARD_DEST}" >&2
     iptables -t nat -I PREROUTING -p tcp --dport $PORT_FORWARD_DEST -j REDIRECT --to $PORT_FORWARD_TO
 fi
 
