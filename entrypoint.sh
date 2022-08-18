@@ -50,6 +50,11 @@ if [[ -z "$LOCAL_SUBNETS" && "$LOCAL_SUBNET" ]]; then
     LOCAL_SUBNETS=$LOCAL_SUBNET
 fi
 
+# Hack to allow upstream port forwarding through a VPN provider
+if [[ -z "$PORT_FORWARD_DEST" && "$PORT_FORWARD_TO" ]]; then
+    iptables -t nat -I PREROUTING -p tcp --dport $PORT_FORWARD_DEST -j REDIRECT --to $PORT_FORWARD_TO
+fi
+
 for local_subnet in ${LOCAL_SUBNETS//,/$IFS}
 do
     echo "Allowing traffic to local subnet ${local_subnet}" >&2
