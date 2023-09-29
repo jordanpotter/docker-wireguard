@@ -109,3 +109,11 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          repository: jordanpotter/wireguard
+          username: jordanpotter
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+          short-description: ${{ github.event.repository.description }}
