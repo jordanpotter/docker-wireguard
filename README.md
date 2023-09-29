@@ -103,3 +103,9 @@ $ docker run --rm                                                  \
   --net=container:wireguard                                        \
   nginx
 ```
+
+## Versioning
+
+This container image is rebuilt weekly with the latest security updates. Each build runs tests to verify all features continue to work as expected, including the kill switch and local network routing.
+
+Images are tagged with the date of the build in `YYYY-MM-DD` format. The available image tags are listed [here](https://hub.docker.com/r/jordanpotter/wireguard/tags).
