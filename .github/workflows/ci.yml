@@ -39,18 +39,25 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build local image for testing
+      - name: Build local Docker image for testing
         uses: docker/build-push-action@v5
         with:
           pull: true
           load: true
           tags: wireguard
 
+      - name: Copy Docker image to Podman
+        run: |
+          sudo podman pull docker-daemon:wireguard
+          podman image scp root@localhost::wireguard
+
       - name: Test curl
         run: |
-          docker run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
-          docker run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
-          docker stop wireguard
+          for cmd in "docker" "podman" "sudo podman"; do
+            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
+            $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
+            $cmd stop wireguard
+          done
 
       - name: Test kill switch
         run: |
