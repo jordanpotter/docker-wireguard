@@ -44,7 +44,7 @@ jobs:
       - name: Copy Docker image to Podman
         run: |
           sudo podman pull docker-daemon:wireguard:latest
-          podman image scp root@localhost::wireguard
+          podman image scp root@localhost::wireguard:latest $USER@localhost::wireguard:latest
 
       - name: Test curl
         run: |
