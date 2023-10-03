@@ -1,19 +1,18 @@
 name: Continuous Integration
 
-on: push
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * TUE"
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   schedule:
-#     - cron: "0 0 * * TUE"
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
-concurrency: ${{ github.workflow }}
+env:
+  platforms: "linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7"
 
 jobs:
-  publish:
-    name: Publish
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,7 +26,7 @@ jobs:
         run: sudo apt-get install wireguard
 
       - name: Create WireGuard config
-        run: echo "${{ secrets.WIREGUARD_CONF }}" > wireguard.conf
+        run: echo '${{ secrets.WIREGUARD_CONF }}' > wireguard.conf
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -40,26 +39,26 @@ jobs:
         with:
           pull: true
           load: true
-          tags: wireguard:test
+          tags: wireguard
 
       - name: Copy Docker image to Podman
         run: |
-          sudo podman pull docker-daemon:docker.io/library/wireguard:test
+          sudo podman pull docker-daemon:docker.io/library/wireguard:latest
 
-      # - name: Test tunnel
-      #   run: |
-      #     for cmd in "docker" "sudo podman"; do
-      #       $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard:test
-      #       normal_ip=$($cmd run --rm curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
-      #       wireguard_ip=$($cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
-      #       if [ "$normal_ip" = "$wireguard_ip" ]; then echo "normal ip and wireguard ip are the same" && exit 1; fi
-      #       $cmd stop wireguard
-      #     done
+      - name: Test tunnel
+        run: |
+          for cmd in "docker" "sudo podman"; do
+            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
+            normal_ip=$($cmd run --rm curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
+            wireguard_ip=$($cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
+            if [ "$normal_ip" = "$wireguard_ip" ]; then echo "normal ip and wireguard ip are the same" && exit 1; fi
+            $cmd stop wireguard
+          done
 
       - name: Test kill switch
         run: |
           for cmd in "docker" "sudo podman"; do
-            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard:test
+            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
             $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
             $cmd exec wireguard wg-quick down wg0
             ! $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
@@ -71,7 +70,7 @@ jobs:
           for cmd in "docker" "sudo podman"; do
             ip_address=$(ip route get 1.2.3.4 | awk '{print $7}')
             $cmd run --rm -d --name nginx -p 8080:80 nginx
-            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -e LOCAL_SUBNETS=$ip_address/32 wireguard:test
+            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -e LOCAL_SUBNETS=$ip_address/32 wireguard
             sleep 3
             $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 $ip_address:8080
             $cmd stop wireguard nginx
@@ -80,7 +79,7 @@ jobs:
       - name: Test exposed ports
         run: |
           for cmd in "docker" "sudo podman"; do
-            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -p 8080:80 wireguard:test
+            $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -p 8080:80 wireguard
             $cmd run --rm -d --name nginx --net=container:wireguard nginx
             sleep 3
             curl --retry 3 --retry-delay 5 localhost:8080
@@ -114,22 +113,34 @@ jobs:
             jordanpotter/wireguard
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ steps.date.outputs.formattedTime }}
-            type=raw,value=latest,enable={{ is_default_branch }}
+            type=raw,value=${{ steps.date.outputs.formattedTime }},enable=${{ github.event_name == 'schedule' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push images
+      - name: Build images
+        if: ${{ github.ref != 'refs/heads/main' }}
         uses: docker/build-push-action@v5
         with:
           pull: true
-          # push: true
+          push: false
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          platforms: ${{ env.platforms }}
 
-      # - name: Update Docker Hub description
-      #   uses: peter-evans/dockerhub-description@v3
-      #   with:
-      #     repository: jordanpotter/wireguard
-      #     username: jordanpotter
-      #     password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-      #     short-description: ${{ github.event.repository.description }}
+      - name: Build and push images
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: docker/build-push-action@v5
+        with:
+          pull: true
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          platforms: ${{ env.platforms }}
+
+      - name: Update Docker Hub description
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          repository: jordanpotter/wireguard
+          username: jordanpotter
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+          short-description: ${{ github.event.repository.description }}
