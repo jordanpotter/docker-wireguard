@@ -2,16 +2,17 @@ name: Continuous Integration
 
 on:
   push:
-    branches:
-      - main
   schedule:
     - cron: "0 0 * * TUE"
 
-concurrency: ${{ github.workflow }}
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+env:
+  platforms: "linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7"
 
 jobs:
-  publish:
-    name: Publish
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,7 +32,7 @@ jobs:
         run: sudo apt-get install wireguard
 
       - name: Download WireGuard config
-        run: echo "${{ secrets.WIREGUARD_CONF }}" > wireguard.conf
+        run: echo '${{ secrets.WIREGUARD_CONF }}' > wireguard.conf
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -100,19 +101,31 @@ jobs:
             jordanpotter/wireguard
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ steps.date.outputs.formattedTime }}
-            type=raw,value=latest,enable={{ is_default_branch }}
+            type=raw,value=${{ steps.date.outputs.formattedTime }},enable=${{ github.event_name == 'schedule' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build images
+        if: ${{ github.ref != 'refs/heads/main' }}
+        uses: docker/build-push-action@v5
+        with:
+          pull: true
+          push: false
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          platforms: ${{ env.platforms }}
 
       - name: Build and push images
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v5
         with:
           pull: true
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          platforms: ${{ env.platforms }}
 
       - name: Update Docker Hub description
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: peter-evans/dockerhub-description@v3
         with:
           repository: jordanpotter/wireguard
