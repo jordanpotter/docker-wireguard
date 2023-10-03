@@ -10,7 +10,7 @@ on:
 concurrency: ${{ github.workflow }}
 
 jobs:
-  build:
+  publish:
     name: Publish
     runs-on: ubuntu-latest
     permissions:
@@ -46,10 +46,12 @@ jobs:
           load: true
           tags: wireguard
 
-      - name: Test curl
+      - name: Test tunnel
         run: |
           docker run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
-          docker run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
+          normal_ip=$(docker run --rm curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
+          wireguard_ip=$(docker run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
+          if [ "$normal_ip" = "$wireguard_ip" ]; then echo "normal ip and wireguard ip are the same" && exit 1; fi
           docker stop wireguard
 
       - name: Test kill switch
