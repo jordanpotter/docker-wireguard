@@ -54,8 +54,8 @@ jobs:
         run: |
           for cmd in "docker" "podman" "sudo podman"; do
             $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
-            normal_ip=$($cmd run --rm curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
-            wireguard_ip=$($cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io)
+            normal_ip=$($cmd run --rm curlimages/curl --retry 3 --retry-delay 1 --retry-all-errors ifconfig.io)
+            wireguard_ip=$($cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 1 --retry-all-errors ifconfig.io)
             if [ "$normal_ip" = "$wireguard_ip" ]; then echo "normal ip and wireguard ip are the same" && exit 1; fi
             $cmd stop wireguard
           done
@@ -64,9 +64,9 @@ jobs:
         run: |
           for cmd in "docker" "podman" "sudo podman"; do
             $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf wireguard
-            $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
+            $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 1 --retry-all-errors ifconfig.io
             $cmd exec wireguard wg-quick down wg0
-            ! $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 ifconfig.io
+            ! $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 1 --retry-all-errors ifconfig.io
             $cmd stop wireguard
           done
 
@@ -76,8 +76,7 @@ jobs:
             ip_address=$(ip route get 1.2.3.4 | awk '{print $7}')
             $cmd run --rm -d --name nginx -p 8080:80 nginx
             $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -e LOCAL_SUBNETS=$ip_address/32 wireguard
-            sleep 3
-            $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 5 $ip_address:8080
+            $cmd run --rm --net=container:wireguard curlimages/curl --retry 3 --retry-delay 1 --retry-all-errors $ip_address:8080
             $cmd stop wireguard nginx
           done
 
@@ -86,8 +85,7 @@ jobs:
           for cmd in "docker" "podman" "sudo podman"; do
             $cmd run --rm -d --name wireguard --cap-add NET_ADMIN --cap-add NET_RAW --cap-add SYS_MODULE --sysctl net.ipv4.conf.all.src_valid_mark=1 -v ${{ github.workspace }}/wireguard.conf:/etc/wireguard/wg0.conf -p 8080:80 wireguard
             $cmd run --rm -d --name nginx --net=container:wireguard nginx
-            sleep 3
-            curl --retry 3 --retry-delay 5 localhost:8080
+            curl --retry 3 --retry-delay 1 --retry-all-errors localhost:8080
             $cmd stop wireguard nginx
           done
 
