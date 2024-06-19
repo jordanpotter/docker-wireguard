@@ -37,6 +37,11 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Disable AppArmor profile for Podman containers until bugfix is available (https://bugs.launchpad.net/ubuntu/+source/libpod/+bug/2040483)
+        run: |
+          sudo mkdir -p /etc/containers/containers.conf.d
+          sudo bash -c "echo -e '[CONTAINERS]\napparmor_profile=\"\"' > /etc/containers/containers.conf.d/disable-apparmor.conf"
+
       - name: Build local Docker image for testing
         uses: docker/build-push-action@v5
         with:
