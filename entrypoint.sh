@@ -34,7 +34,7 @@ container_ipv4_network_rule=$([ ! -z "$container_ipv4_network" ] && echo "! -d $
 iptables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $container_ipv4_network_rule -j REJECT
 
 # IPv6 kill switch: traffic must be either (1) to the WireGuard interface, (2) marked as a WireGuard packet, (3) to a local address, or (4) to the container network
-container_ipv6_network="$(ip -o addr show dev eth0 | awk '$3 == "inet6" {print $4}')"
+container_ipv6_network="$(ip -o addr show dev eth0 | awk '$3 == "inet6" && $6 == "global" {print $4}')"
 if [[ "$container_ipv6_network" ]]; then
 	container_ipv6_network_rule=$([ ! -z "$container_ipv6_network" ] && echo "! -d $container_ipv6_network" || echo "")
 	ip6tables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $container_ipv6_network_rule -j REJECT
