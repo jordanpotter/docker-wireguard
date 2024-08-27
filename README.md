@@ -2,6 +2,8 @@
 
 This is a simple image to run a WireGuard client. It includes a kill switch to ensure that any traffic not encrypted via WireGuard is dropped.
 
+THIS IS FORK WITH SOME CHANGED CODE
+
 WireGuard is implemented as a kernel module, which is key to its performance and simplicity. However, this means that WireGuard _must_ be installed on the host operating system for this container to work properly. Instructions for installing WireGuard can be found [here](http://wireguard.com/install).
 
 You will need a configuration file for your WireGuard interface. Many VPN providers will create this configuration file for you. If your VPN provider offers to include a kill switch in the configuration file, be sure to DECLINE, since this container image already has one.
