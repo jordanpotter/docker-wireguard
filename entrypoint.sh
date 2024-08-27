@@ -31,7 +31,26 @@ wg-quick up $interface
 # IPv4 kill switch: traffic must be either (1) to the WireGuard interface, (2) marked as a WireGuard packet, (3) to a local address, or (4) to the container network
 container_ipv4_network="$(ip -o addr show dev eth0 | awk '$3 == "inet" {print $4}')"
 container_ipv4_network_rule=$([ ! -z "$container_ipv4_network" ] && echo "! -d $container_ipv4_network" || echo "")
-iptables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m addrtype ! --dst-type LOCAL $container_ipv4_network_rule -j REJECT
+iptables -I OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -I OUTPUT ! -o $interface -m mark ! --mark $(wg show $interface fwmark) -m conntrack ! --ctstate ESTABLISHED,RELATED -m addrtype ! --dst-type LOCAL $container_ipv4_network_rule -j REJECT
+
+# Get the default gateway for eth0
+DEFAULT_GATEWAY=$(ip route show default | grep -o 'via [0-9.]*' | awk '{print $2}')
+
+TABLE="custom"
+
+mkdir -p /etc/iproute2
+# Add to rt_tables
+echo "200 $TABLE" | tee -a /etc/iproute2/rt_tables
+
+# Add routing rule
+ip rule add from $container_ipv4_network table $TABLE
+
+# Add default route for this table
+ip route add default via $DEFAULT_GATEWAY dev eth0 table $TABLE
+
+echo "Routing rule and route added for $IP_ADDR with gateway $DEFAULT_GATEWAY"
+
 
 # IPv6 kill switch: traffic must be either (1) to the WireGuard interface, (2) marked as a WireGuard packet, (3) to a local address, or (4) to the container network
 container_ipv6_network="$(ip -o addr show dev eth0 | awk '$3 == "inet6" && $6 == "global" {print $4}')"
