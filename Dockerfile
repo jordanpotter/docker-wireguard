@@ -1,7 +1,7 @@
-FROM alpine:3
+FROM alpine:3.22
 
 RUN apk add --no-cache \
-	findutils openresolv iptables ip6tables iproute2 wireguard-tools
+    findutils openresolv iptables ip6tables iproute2 wireguard-tools
 
 COPY entrypoint.sh /entrypoint.sh
 
