@@ -8,14 +8,16 @@ if [[ -z "$default_route_ip" ]]; then
 	exit 1
 fi
 
-configs=`find /etc/wireguard -type f -printf "%f\n"`
+configs=$(find /etc/wireguard -type f -printf "%f\n")
 if [[ -z "$configs" ]]; then
 	echo "No configuration file found in /etc/wireguard" >&2
 	exit 1
+elif [[ $(echo "$configs" | wc -l) -gt 1 ]]; then
+	echo "Multiple configuration files found in /etc/wireguard, expected only one" >&2
+	exit 1
 fi
 
-config=`echo $configs | head -n 1`
-interface="${config%.*}"
+interface="${configs%.*}"
 
 if [[ "$(cat /proc/sys/net/ipv4/conf/all/src_valid_mark)" != "1" ]]; then
 	echo "sysctl net.ipv4.conf.all.src_valid_mark=1 is not set" >&2
